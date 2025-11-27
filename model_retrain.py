@@ -14,13 +14,13 @@ Adam = tf.keras.optimizers.Adam
 # Configuration
 IMG_SIZE = 48
 BATCH_SIZE = 64
-EPOCHS = 5 # Reduced for quicker turnaround, increase for better accuracy
+EPOCHS = 40 # Reduced for quicker turnaround, increase for better accuracy
 # Robust path finding
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASET_PATH = os.path.join(BASE_DIR, 'fer2013')
 
 def train_model():
-    # 1. Data Generators (Augmentation for training)
+    # Data Generators (Augmentation for training)
     train_datagen = ImageDataGenerator(
         rescale=1./255,
         rotation_range=10,
@@ -33,9 +33,6 @@ def train_model():
     )
 
     # Load Data (Assumes folder structure: dataset/train/angry, dataset/train/happy, etc.)
-    # Since FER2013 usually comes as a CSV or specific folder structure, 
-    # this part might need adjustment based on how the user downloads the data.
-    # For this script, we assume a standard 'train' and 'validation' folder structure.
     
     if not os.path.exists(DATASET_PATH):
         print(f"Dataset not found at {DATASET_PATH}. Please download FER2013 and extract it.")

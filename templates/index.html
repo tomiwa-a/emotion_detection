@@ -11,10 +11,10 @@
 
     <header>
         <h1>Emotion AI</h1>
+        <p class="subtitle">Real-time Facial Emotion Recognition</p>
     </header>
 
     <div class="main-layout">
-        <!-- Left Side: Video & Controls -->
         <div class="video-section">
             <div id="video-container">
                 <video id="video" autoplay playsinline></video>
@@ -22,7 +22,6 @@
             <button id="capture-btn" class="btn">Capture Emotion</button>
         </div>
 
-        <!-- Right Side: Results -->
         <div class="result-section">
             <div id="loading" class="spinner"></div>
             
@@ -32,6 +31,8 @@
                 <div id="confidence-meter"></div>
                 <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
             </div>
+        </div>
+    </div>
 
     <script>
         const video = document.getElementById('video');
@@ -43,7 +44,6 @@
         const confidenceMeter = document.getElementById('confidence-meter');
         const loading = document.getElementById('loading');
 
-        // 1. Access Webcam
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
                 video.srcObject = stream;
@@ -53,9 +53,7 @@
                 alert("Could not access webcam. Please allow permissions.");
             });
 
-        // 2. Capture & Predict
         captureBtn.addEventListener('click', () => {
-            // UI Feedback
             loading.style.display = 'block';
             resultContainer.classList.remove('visible');
             captureBtn.disabled = true;
@@ -79,13 +77,11 @@
                     if (data.error) {
                         alert(data.error);
                     } else {
-                        // Update UI
                         emotionLabel.innerText = data.emotion;
                         emotionDesc.innerText = data.description;
                         confidenceMeter.innerText = `Confidence: ${(data.confidence * 100).toFixed(1)}%`;
                         resultContainer.classList.add('visible');
 
-                        // Draw Face Box
                         if (data.face_box && data.face_box.length === 4) {
                             const [x, y, w, h] = data.face_box;
                             const ctx = canvas.getContext('2d');
@@ -93,9 +89,7 @@
                             ctx.lineWidth = 4;
                             ctx.strokeRect(x, y, w, h);
                             
-                            // Show the canvas with the result
                             canvas.style.display = 'block';
-                            // Scroll to result
                             resultContainer.scrollIntoView({ behavior: 'smooth' });
                         }
                     }
