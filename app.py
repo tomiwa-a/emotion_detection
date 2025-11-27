@@ -19,6 +19,9 @@ model = tf.keras.models.load_model('emotion_model_trained.h5')
 emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
 print("Model loaded!")
 
+# Load Face Detector
+face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -37,18 +40,32 @@ def predict():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], 'capture.jpg')
         file.save(filepath)
 
-        # Preprocess Image
-        # MobileNetV2 expects (48, 48, 3) or (224, 224, 3) depending on how we saved it.
-        # In model_saving.py we used input_shape=(48, 48, 3).
-        
+        # Read Image
         img = cv2.imread(filepath)
-        img = cv2.resize(img, (48, 48)) # Resize to match model input
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # Ensure RGB
-        img = img / 255.0 # Normalize pixel values to [0, 1]
-        img = np.expand_dims(img, axis=0) # Add batch dimension: (1, 48, 48, 3)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        # Detect Faces
+        faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+        
+        face_data = []
+        
+        # If faces detected, use the first one (largest usually) for prediction
+        if len(faces) > 0:
+            (x, y, w, h) = faces[0]
+            face_roi = img[y:y+h, x:x+w] # Crop face
+            face_data = [int(x), int(y), int(w), int(h)] # For frontend
+        else:
+            face_roi = img # Fallback to full image
+            face_data = []
+
+        # Preprocess for Model
+        face_roi = cv2.resize(face_roi, (48, 48)) 
+        face_roi = cv2.cvtColor(face_roi, cv2.COLOR_BGR2RGB)
+        face_roi = face_roi / 255.0
+        face_roi = np.expand_dims(face_roi, axis=0)
 
         # Prediction
-        prediction = model.predict(img)
+        prediction = model.predict(face_roi)
         label_index = np.argmax(prediction)
         label = emotion_labels[label_index]
         confidence = float(np.max(prediction))
@@ -68,7 +85,8 @@ def predict():
         return jsonify({
             'emotion': label,
             'description': description,
-            'confidence': f"{confidence:.2f}"
+            'confidence': f"{confidence:.2f}",
+            'face_box': face_data
         })
 
 if __name__ == '__main__':

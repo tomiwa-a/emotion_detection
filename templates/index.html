@@ -14,40 +14,36 @@
         <p class="subtitle">Real-time Facial Emotion Recognition</p>
     </header>
 
-    <div class="container">
-        <div id="video-container">
-            <video id="video" autoplay playsinline></video>
+    <div class="main-layout">
+        <div class="video-section">
+            <div id="video-container">
+                <video id="video" autoplay playsinline></video>
+            </div>
+            <button id="capture-btn" class="btn">Capture Emotion</button>
         </div>
 
-        <div class="controls">
-            <button id="capture-btn" class="btn">
-                <span>Capture Emotion</span>
-            </button>
-        </div>
-
-        <div id="loading" class="spinner"></div>
-
-        <div id="result-container">
-            <h2 id="emotion-label"></h2>
-            <p id="emotion-description"></p>
-            <div id="confidence-meter"></div>
+        <div class="result-section">
+            <div id="loading" class="spinner"></div>
+            
+            <div id="result-content">
+                <div id="emotion-label">Ready</div>
+                <p id="emotion-description">Click capture to analyze your expression.</p>
+                <div id="confidence-meter"></div>
+                <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+            </div>
         </div>
     </div>
-
-    <!-- Hidden canvas -->
-    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
 
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const captureBtn = document.getElementById('capture-btn');
-        const resultContainer = document.getElementById('result-container');
+        const resultContainer = document.getElementById('result-content');
         const emotionLabel = document.getElementById('emotion-label');
         const emotionDesc = document.getElementById('emotion-description');
         const confidenceMeter = document.getElementById('confidence-meter');
         const loading = document.getElementById('loading');
 
-        // 1. Access Webcam
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
                 video.srcObject = stream;
@@ -57,9 +53,7 @@
                 alert("Could not access webcam. Please allow permissions.");
             });
 
-        // 2. Capture & Predict
         captureBtn.addEventListener('click', () => {
-            // UI Feedback
             loading.style.display = 'block';
             resultContainer.classList.remove('visible');
             captureBtn.disabled = true;
@@ -83,11 +77,21 @@
                     if (data.error) {
                         alert(data.error);
                     } else {
-                        // Update UI
                         emotionLabel.innerText = data.emotion;
                         emotionDesc.innerText = data.description;
                         confidenceMeter.innerText = `Confidence: ${(data.confidence * 100).toFixed(1)}%`;
                         resultContainer.classList.add('visible');
+
+                        if (data.face_box && data.face_box.length === 4) {
+                            const [x, y, w, h] = data.face_box;
+                            const ctx = canvas.getContext('2d');
+                            ctx.strokeStyle = '#00ff00'; // Green
+                            ctx.lineWidth = 4;
+                            ctx.strokeRect(x, y, w, h);
+                            
+                            canvas.style.display = 'block';
+                            resultContainer.scrollIntoView({ behavior: 'smooth' });
+                        }
                     }
                 })
                 .catch(err => {
