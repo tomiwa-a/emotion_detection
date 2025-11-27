@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <h1>Emotion AI</h1>
+        <p class="subtitle">Real-time Facial Emotion Recognition</p>
+    </header>
+
+    <div class="container">
+        <div id="video-container">
+            <video id="video" autoplay playsinline></video>
+        </div>
+
+        <div class="controls">
+            <button id="capture-btn" class="btn">
+                <span>Capture Emotion</span>
+            </button>
+        </div>
+
+        <div id="loading" class="spinner"></div>
+
+        <div id="result-container">
+            <h2 id="emotion-label"></h2>
+            <p id="emotion-description"></p>
+            <div id="confidence-meter"></div>
+        </div>
+    </div>
+
+    <!-- Hidden canvas -->
+    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('capture-btn');
+        const resultContainer = document.getElementById('result-container');
+        const emotionLabel = document.getElementById('emotion-label');
+        const emotionDesc = document.getElementById('emotion-description');
+        const confidenceMeter = document.getElementById('confidence-meter');
+        const loading = document.getElementById('loading');
+
+        // 1. Access Webcam
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Error accessing webcam:", err);
+                alert("Could not access webcam. Please allow permissions.");
+            });
+
+        // 2. Capture & Predict
+        captureBtn.addEventListener('click', () => {
+            // UI Feedback
+            loading.style.display = 'block';
+            resultContainer.classList.remove('visible');
+            captureBtn.disabled = true;
+
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(blob => {
+                const formData = new FormData();
+                formData.append('image', blob, 'capture.jpg');
+
+                fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loading.style.display = 'none';
+                    captureBtn.disabled = false;
+
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        // Update UI
+                        emotionLabel.innerText = data.emotion;
+                        emotionDesc.innerText = data.description;
+                        confidenceMeter.innerText = `Confidence: ${(data.confidence * 100).toFixed(1)}%`;
+                        resultContainer.classList.add('visible');
+                    }
+                })
+                .catch(err => {
+                    console.error("Error:", err);
+                    loading.style.display = 'none';
+                    captureBtn.disabled = false;
+                    alert("Error connecting to server.");
+                });
+            }, 'image/jpeg');
+        });
+    </script>
+
+</body>
+</html>
