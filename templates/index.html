@@ -11,26 +11,26 @@
 
     <header>
         <h1>Emotion AI</h1>
-        <p class="subtitle">Real-time Facial Emotion Recognition</p>
     </header>
 
-    <div class="container">
-        <div id="video-container">
-            <video id="video" autoplay playsinline></video>
+    <div class="main-layout">
+        <!-- Left Side: Video & Controls -->
+        <div class="video-section">
+            <div id="video-container">
+                <video id="video" autoplay playsinline></video>
+            </div>
+            <button id="capture-btn" class="btn">Capture Emotion</button>
         </div>
 
-        <div class="controls">
-            <button id="capture-btn" class="btn">
-                <span>Capture Emotion</span>
-            </button>
-        </div>
-
-        <div id="loading" class="spinner"></div>
-
-        <div id="result-container">
-            <h2 id="emotion-label"></h2>
-            <p id="emotion-description"></p>
-            <div id="confidence-meter"></div>
+        <!-- Right Side: Results -->
+        <div class="result-section">
+            <div id="loading" class="spinner"></div>
+            
+            <div id="result-content">
+                <div id="emotion-label">Ready</div>
+                <p id="emotion-description">Click capture to analyze your expression.</p>
+                <div id="confidence-meter"></div>
+            </div>
         </div>
     </div>
 
@@ -41,7 +41,7 @@
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const captureBtn = document.getElementById('capture-btn');
-        const resultContainer = document.getElementById('result-container');
+        const resultContainer = document.getElementById('result-content');
         const emotionLabel = document.getElementById('emotion-label');
         const emotionDesc = document.getElementById('emotion-description');
         const confidenceMeter = document.getElementById('confidence-meter');
