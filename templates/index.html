@@ -88,6 +88,20 @@
                         emotionDesc.innerText = data.description;
                         confidenceMeter.innerText = `Confidence: ${(data.confidence * 100).toFixed(1)}%`;
                         resultContainer.classList.add('visible');
+
+                        // Draw Face Box
+                        if (data.face_box && data.face_box.length === 4) {
+                            const [x, y, w, h] = data.face_box;
+                            const ctx = canvas.getContext('2d');
+                            ctx.strokeStyle = '#00ff00'; // Green
+                            ctx.lineWidth = 4;
+                            ctx.strokeRect(x, y, w, h);
+                            
+                            // Show the canvas with the result
+                            canvas.style.display = 'block';
+                            // Scroll to result
+                            resultContainer.scrollIntoView({ behavior: 'smooth' });
+                        }
                     }
                 })
                 .catch(err => {
